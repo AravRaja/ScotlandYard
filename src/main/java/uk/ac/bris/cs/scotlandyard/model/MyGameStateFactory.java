@@ -33,6 +33,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		private ImmutableSet<Move> moves;
 		private ImmutableSet<Piece> winner;
 
+		
 		private Piece CurrentPiece;
 
 		private MyGameState(
@@ -224,6 +225,19 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			return List.of(ImmutableMap.copyOf(newtP),ImmutableMap.copyOf(newtX));
 		}
 
+		public Player setCurrentPlayer(){
+			Player CurrentPlayer = null;
+			if (CurrentPiece.isMrX()){ CurrentPlayer = mrX;}
+			else {
+				for (Player d : detectives) {
+					if (d.piece().equals(CurrentPiece)) {
+						CurrentPlayer = d;
+					}
+				}
+			}
+			return CurrentPlayer;
+		}
+
 		public static class LocationUpdate implements Visitor<Integer>{
 
 			@Override
@@ -257,7 +271,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			ArrayList<LogEntry> LogEntries = new ArrayList<LogEntry>();
 			@Override
 			public ImmutableList<LogEntry> visit(SingleMove move) {
-				LogEntries.add(new LogEntry(move.ticket, move.destination));
+				LogEntries.add(new LogEntry( move.ticket,  move.destination));
 				return LogEntries;
 			}
 
@@ -277,32 +291,26 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			if(!moves.contains(move)) throw new IllegalArgumentException("Illegal move: "+move);
 			//check validity of move ^
 
-			Player CurrentPlayer = null;
-			if (CurrentPiece.isMrX()){ CurrentPlayer = mrX;}
-			else {
-				for (Player d : detectives) {
-					if (d.piece().equals(CurrentPiece)) {
-						CurrentPlayer = d;
-					}
-				}
-			}
+			Player CurrentPlayer = setCurrentPlayer();
 
 			// gives us current player from piece ^
 
 
-            assert CurrentPlayer != null;
+
 			TicketUpdate tc = new TicketUpdate();
             ImmutableMap<Ticket, Integer> PlayerTickets = setTickets(CurrentPlayer.tickets(), move.accept(tc)).get(0);
 			if(CurrentPiece.isDetective()) {
 				ImmutableMap<Ticket, Integer> XTickets = setTickets(CurrentPlayer.tickets(), move.accept(tc)).get(1);
 			}
+
+
+
+
 			LocationUpdate lc = new LocationUpdate();
 			Integer location = move.accept(lc);
 			Player nextPlayer = new Player(CurrentPiece, PlayerTickets, location);
 
-			if (CurrentPiece.equals(mrX.piece())) {
 
-			}
 
 			//number of rounds og the game has been left
 			//how many moves mrX has made

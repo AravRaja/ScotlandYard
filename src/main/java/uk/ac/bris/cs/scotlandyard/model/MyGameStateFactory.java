@@ -255,6 +255,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			}
 		}
 
+
 		@Override public GameState advance(Move move) {
 			this.CurrentPiece = move.commencedBy();
 			this.moves = getAvailableMoves();
@@ -262,20 +263,27 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			//check validity of move ^
 
 			Player CurrentPlayer = null;
-
-			for(Player d: detectives){
-				if (d.piece().equals(CurrentPiece)){CurrentPlayer = d;}
+			if (CurrentPiece.isMrX()){ CurrentPlayer = mrX;}
+			else {
+				for (Player d : detectives) {
+					if (d.piece().equals(CurrentPiece)) {
+						CurrentPlayer = d;
+					}
+				}
 			}
-			if (mrX.piece().equals(CurrentPiece)){ CurrentPlayer = mrX;}
+
 			// gives us current player from piece ^
 
 
             assert CurrentPlayer != null;
 			TicketUpdate tc = new TicketUpdate();
-            ImmutableMap<Ticket, Integer> tickets = setTickets(CurrentPlayer.tickets(), move.accept(tc));
+            ImmutableMap<Ticket, Integer> PlayerTickets = setTickets(CurrentPlayer.tickets(), move.accept(tc)).get(0);
+			if(CurrentPiece.isDetective()) {
+				ImmutableMap<Ticket, Integer> XTickets = setTickets(CurrentPlayer.tickets(), move.accept(tc)).get(1);
+			}
 			LocationUpdate lc = new LocationUpdate();
 			Integer location = move.accept(lc);
-			Player nextPlayer = new Player(CurrentPiece, tickets, location);
+			Player nextPlayer = new Player(CurrentPiece, PlayerTickets, location);
 
 			if (CurrentPiece.equals(mrX.piece())) {
 

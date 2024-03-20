@@ -94,7 +94,6 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			// TODO create an empty collection of some sort, say, HashSet, to store all the SingleMove we generate
 			List<Integer> detectivePositions = new ArrayList<Integer>();
 			for (Player d : detectives) {
-				//System.out.println(d.location());
 				//System.out.println(d.piece());
 				detectivePositions.add(d.location());
 			}

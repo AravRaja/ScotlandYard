@@ -30,6 +30,8 @@ public class GameStateMrXAvailableMovesTest extends ParameterisedModelTestBase {
 		// no destination should end up at 116(blue), applies for first move and
 		// second move
 		GameState state = gameStateFactory.build(standard24MoveSetup(), mrX, blue);
+		System.out.println(blue.location() );
+		System.out.println("in tests");
 
 		assertThat(state.getAvailableMoves()).containsExactlyInAnyOrder(
 				taxi(MRX, 104, 86),

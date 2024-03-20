@@ -11,8 +11,7 @@ import java.util.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import java.util.*;
-import javax.annotation.Nonnull;
-import uk.ac.bris.cs.scotlandyard.model.Board.GameState;
+
 import uk.ac.bris.cs.scotlandyard.model.Move.*;
 import uk.ac.bris.cs.scotlandyard.model.Piece.*;
 import uk.ac.bris.cs.scotlandyard.model.ScotlandYard.*;
@@ -42,7 +41,8 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				final ImmutableList<LogEntry> log,
 				final Player mrX,
 				final List<Player> detectives,
-				final ImmutableSet<Piece> winner)
+				final ImmutableSet<Piece> winner
+		)
 
 		{
 			this.setup = setup;
@@ -212,18 +212,104 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			}
 		}
 
+		public ImmutableMap<ScotlandYard.Ticket, Integer> setTickets(ImmutableMap<ScotlandYard.Ticket, Integer> oldTickets, List<Ticket> changedTickets){
+			Map<ScotlandYard.Ticket, Integer> newTickets;
+			for (Ticket ticket : oldTickets.keySet()) {
+				if (changedTickets.contains(ticket)){
+					Collections.frequency(changedTickets, ticket);
+				}
+			}
+
+
+			return null;
+		}
+		public static class LocationUpdate implements Visitor<Integer>{
+
+			@Override
+			public Integer visit(SingleMove move) {
+
+				return move.destination;
+			}
+
+			@Override
+			public Integer visit(DoubleMove move) {
+				return move.destination2;
+			}
+		}
+		public static class TicketUpdate implements Visitor<List<Ticket>>{
+			ArrayList<Ticket> tickets = new ArrayList<Ticket>();
+			@Override
+			public List<Ticket> visit(SingleMove move) {
+				tickets.add(move.ticket);
+				return tickets;
+			}
+
+			@Override
+			public List<Ticket> visit(DoubleMove move) {
+				tickets.add(move.ticket1);
+				tickets.add(move.ticket2);
+				tickets.add(Ticket.DOUBLE);
+				return tickets;
+			}
+		}
 
 
 		@Override public GameState advance(Move move) {
-			if(!moves.contains(move)) throw new IllegalArgumentException("Illegal move: "+move);
 			this.CurrentPiece = move.commencedBy();
+			this.moves = getAvailableMoves();
+			if(!moves.contains(move)) throw new IllegalArgumentException("Illegal move: "+move);
+			//check validity of move ^
+
+			Player CurrentPlayer = null;
+
+			for(Player d: detectives){
+				if (d.piece().equals(CurrentPiece)){CurrentPlayer = d;}
+			}
+			if (mrX.piece().equals(CurrentPiece)){ CurrentPlayer = mrX;}
+			// gives us current player from piece ^
+
+
+            assert CurrentPlayer != null;
+            Map<Ticket, Integer> tickets = CurrentPlayer.tickets();
+			Integer location = CurrentPlayer.location();
+
+			LocationUpdate lc = new LocationUpdate();
+			location = move.accept(lc);
+
+
+			if (CurrentPiece.equals(mrX.piece())) {
+
+			}
+
+			//number of rounds og the game has been left
+			//how many moves mrX has made
+
+
+			//single move
+			/* update the position of piece
+			 * give tickets to mrX
+			 * swap turn
+			 * check prev detective isnt in available moves
+			 * if no possible detective moves switch to mrX
+			 * IF MR X
+			 * update travel log
+			 * discard tickets used
+			 * if move is reveal
+			 *
+			 * double move
+			 * update travel log  twice
+			 * discard three tickets
+			 * update positions
+			 *
+			 * */
+
 			return null;  }
 	}
 	@Nonnull @Override public GameState build(
 			GameSetup setup,
 			Player mrX,
 			ImmutableList<Player> detectives) {
-		return new MyGameState(setup, ImmutableSet.of(MrX.MRX), ImmutableList.of(), mrX, detectives, ImmutableSet.of());
+		return new MyGameState(setup, ImmutableSet.of(MRX), ImmutableList.of(), mrX, detectives, ImmutableSet.of());
 	}
 
 }

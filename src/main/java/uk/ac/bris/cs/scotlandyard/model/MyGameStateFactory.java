@@ -94,6 +94,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			// TODO create an empty collection of some sort, say, HashSet, to store all the SingleMove we generate
 			List<Integer> detectivePositions = new ArrayList<Integer>();
 			for (Player d : detectives) {
+				//System.out.println(d.location());
 				//System.out.println(d.piece());
 				detectivePositions.add(d.location());
 			}
@@ -277,21 +278,27 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			//check validity of move ^
 
 			Player CurrentPlayer = null;
-
-			for(Player d: detectives){
-				if (d.piece().equals(CurrentPiece)){CurrentPlayer = d;}
-			}
 			if (CurrentPiece.isMrX()){ CurrentPlayer = mrX;}
+			else {
+				for (Player d : detectives) {
+					if (d.piece().equals(CurrentPiece)) {
+						CurrentPlayer = d;
+					}
+				}
+			}
+
 			// gives us current player from piece ^
 
 
             assert CurrentPlayer != null;
-            Map<Ticket, Integer> tickets = CurrentPlayer.tickets();
-			Integer location = CurrentPlayer.location();
-
+			TicketUpdate tc = new TicketUpdate();
+            ImmutableMap<Ticket, Integer> PlayerTickets = setTickets(CurrentPlayer.tickets(), move.accept(tc)).get(0);
+			if(CurrentPiece.isDetective()) {
+				ImmutableMap<Ticket, Integer> XTickets = setTickets(CurrentPlayer.tickets(), move.accept(tc)).get(1);
+			}
 			LocationUpdate lc = new LocationUpdate();
-			location = move.accept(lc);
-
+			Integer location = move.accept(lc);
+			Player nextPlayer = new Player(CurrentPiece, PlayerTickets, location);
 
 			if (CurrentPiece.equals(mrX.piece())) {
 
@@ -302,14 +309,14 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 
 			//single move
-			/* update the position of piece
-			 * give tickets to mrX
-			 * swap turn
-			 * check prev detective isnt in available moves
+			/* update the position of piece !
+			 * give tickets to mrX !
+			 * swap turn !
+			 * check all,prev detective isnt in available moves
 			 * if no possible detective moves switch to mrX
 			 * IF MR X
 			 * update travel log
-			 * discard tickets used
+			 * discard tickets used !
 			 * if move is reveal
 			 *
 			 * double move

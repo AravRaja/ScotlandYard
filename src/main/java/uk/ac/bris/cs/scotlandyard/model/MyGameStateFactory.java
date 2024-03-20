@@ -211,17 +211,18 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			}
 		}
 
-		public ImmutableMap<ScotlandYard.Ticket, Integer> setTickets(ImmutableMap<ScotlandYard.Ticket, Integer> oldTickets, List<Ticket> changedTickets){
-			Map<ScotlandYard.Ticket, Integer> newTickets;
-			for (Ticket ticket : oldTickets.keySet()) {
-				if (changedTickets.contains(ticket)){
-					Collections.frequency(changedTickets, ticket);
+		public List<ImmutableMap<ScotlandYard.Ticket, Integer>> setTickets(ImmutableMap<ScotlandYard.Ticket, Integer> oldTickets, List<Ticket> changedTickets){
+			Map<ScotlandYard.Ticket, Integer> newtP = oldTickets;
+			Map<ScotlandYard.Ticket, Integer> newtX = mrX.tickets();
+			for (Ticket t : changedTickets) {
+				newtP.replace(t, newtP.get(t), newtP.get(t) - 1);
+				if (CurrentPiece.isDetective()) {
+					newtX.replace(t, newtX.get(t), newtX.get(t) + 1);
 				}
 			}
-
-
-			return null;
+			return List.of(ImmutableMap.copyOf(newtP),ImmutableMap.copyOf(newtX));
 		}
+
 		public static class LocationUpdate implements Visitor<Integer>{
 
 			@Override

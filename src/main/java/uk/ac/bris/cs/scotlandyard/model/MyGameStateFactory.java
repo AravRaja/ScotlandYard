@@ -252,6 +252,22 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				return tickets;
 			}
 		}
+		public static class LogUpdate implements Visitor<ImmutableList<LogEntry>>{
+			ArrayList<LogEntry> LogEntries = new ArrayList<LogEntry>();
+			@Override
+			public ImmutableList<LogEntry> visit(SingleMove move) {
+				LogEntries.add(new LogEntry(move.ticket, move.destination));
+				return LogEntries;
+			}
+
+			@Override
+			public ImmutableList<LogEntry> visit(DoubleMove move) {
+				tickets.add(move.ticket1);
+				tickets.add(move.ticket2);
+				tickets.add(Ticket.DOUBLE);
+				return tickets;
+			}
+		}
 
 
 		@Override public GameState advance(Move move) {

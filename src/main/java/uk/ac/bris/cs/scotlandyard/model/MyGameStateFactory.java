@@ -15,6 +15,7 @@ import java.util.*;
 import uk.ac.bris.cs.scotlandyard.model.Move.*;
 import uk.ac.bris.cs.scotlandyard.model.Piece.*;
 import uk.ac.bris.cs.scotlandyard.model.ScotlandYard.*;
+import uk.ac.bris.cs.scotlandyard.ui.controller.TravelLogController;
 
 import static uk.ac.bris.cs.scotlandyard.model.Piece.MrX.MRX;
 
@@ -94,6 +95,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			// TODO create an empty collection of some sort, say, HashSet, to store all the SingleMove we generate
 			List<Integer> detectivePositions = new ArrayList<Integer>();
 			for (Player d : detectives) {
+				//System.out.println(d.location());
 				//System.out.println(d.piece());
 				detectivePositions.add(d.location());
 			}
@@ -252,7 +254,6 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			}
 		}
 
-
 		@Override public GameState advance(Move move) {
 			this.CurrentPiece = move.commencedBy();
 			this.moves = getAvailableMoves();
@@ -269,12 +270,11 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 
             assert CurrentPlayer != null;
-            Map<Ticket, Integer> tickets = CurrentPlayer.tickets();
-			Integer location = CurrentPlayer.location();
-
+			TicketUpdate tc = new TicketUpdate();
+            ImmutableMap<Ticket, Integer> tickets = setTickets(CurrentPlayer.tickets(), move.accept(tc));
 			LocationUpdate lc = new LocationUpdate();
-			location = move.accept(lc);
-
+			Integer location = move.accept(lc);
+			Player nextPlayer = new Player(CurrentPiece, tickets, location);
 
 			if (CurrentPiece.equals(mrX.piece())) {
 
@@ -285,14 +285,14 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 
 			//single move
-			/* update the position of piece
-			 * give tickets to mrX
-			 * swap turn
-			 * check prev detective isnt in available moves
+			/* update the position of piece !
+			 * give tickets to mrX !
+			 * swap turn !
+			 * check all,prev detective isnt in available moves
 			 * if no possible detective moves switch to mrX
 			 * IF MR X
 			 * update travel log
-			 * discard tickets used
+			 * discard tickets used !
 			 * if move is reveal
 			 *
 			 * double move

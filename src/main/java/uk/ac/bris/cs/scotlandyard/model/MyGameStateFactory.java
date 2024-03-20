@@ -266,7 +266,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				if (d.piece().equals(CurrentPiece)){CurrentPlayer = d;}
 			}
 			if (mrX.piece().equals(CurrentPiece)){ CurrentPlayer = mrX;}
-			// gives us current player from piece ^
+			// gives us current player from piece ^-
 
 
             assert CurrentPlayer != null;

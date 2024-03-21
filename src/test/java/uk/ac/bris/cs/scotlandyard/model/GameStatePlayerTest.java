@@ -59,7 +59,9 @@ public class GameStatePlayerTest extends ParameterisedModelTestBase {
 
 		state = state.advance(taxi(MRX, 45, 46));
 		state = state.advance(taxi(BLUE, 94, 95));
+		System.out.println("heyy");
 		assertTickets(state, MRX, 1, 1, 1, 0, 0);
+		System.out.println("hi");
 		assertTickets(state, BLUE, 1, 0, 0, 0, 0);
 	}
 

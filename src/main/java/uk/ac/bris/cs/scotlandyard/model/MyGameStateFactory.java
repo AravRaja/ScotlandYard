@@ -37,13 +37,13 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		private Set<Piece> prevDetectives;
 
 		private MyGameState(
-				final GameSetup setup,
-				final ImmutableSet<Piece> remaining,
-				final ImmutableList<LogEntry> log,
-				final Player mrX,
-				final List<Player> detectives,
-				final ImmutableSet<Piece> winner
-		)
+                final GameSetup setup,
+                final ImmutableSet<Piece> remaining,
+                final ImmutableList<LogEntry> log,
+                final Player mrX,
+                final List<Player> detectives,
+                final ImmutableSet<Piece> winner, Set<Piece> prevDetectives
+        )
 
 		{
 			this.setup = setup;
@@ -51,12 +51,12 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			this.log = log;
 			this.mrX = mrX;
 			this.detectives = detectives;
-			this.winner = ImmutableSet.of();
+            this.prevDetectives = prevDetectives;
+            this.winner = ImmutableSet.of();
 			this.CurrentPiece = mrX.piece();
 			this.moves = getAvailableMoves();
-			this.prevDetectives = prevDetectives;
 
-			if(setup.moves.isEmpty()) throw new IllegalArgumentException("Moves is empty!");
+            if(setup.moves.isEmpty()) throw new IllegalArgumentException("Moves is empty!");
 			if(!mrX.isMrX()) throw new IllegalArgumentException("mrX is not the MRX piece");
 			for (Player p : detectives) {
 				if(!p.isDetective()) throw new IllegalArgumentException("Player in detectives is not a detective");
@@ -274,11 +274,12 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 
 		@Override public GameState advance(Move move) {
+			if(!moves.contains(move)) throw new IllegalArgumentException("Illegal move: "+move);
 			this.CurrentPiece = move.commencedBy();
 			if (prevDetectives.contains(CurrentPiece)) { throw new IllegalArgumentException("Detective has already moved this round"); }
 			else {this.prevDetectives.add(CurrentPiece); }
+			if (prevDetectives.size() == detectives.size()) { CurrentPiece = MRX;}
 			this.moves = getAvailableMoves();
-			if(!moves.contains(move)) throw new IllegalArgumentException("Illegal move: "+move);
 			//check validity of move ^
 
 			Player CurrentPlayer = null;
@@ -315,7 +316,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			//single move
 			/* update the position of piece !
 			 * give tickets to mrX !
-			 * swap turn !
+			 * swap turn
 			 * check all,prev detective isnt in available moves !
 			 * if no possible detective moves switch to mrX
 			 * IF MR X
@@ -325,8 +326,8 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			 *
 			 * double move
 			 * update travel log  twice
-			 * discard three tickets
-			 * update positions
+			 * discard three tickets !
+			 * update positions !
 			 *
 			 * */
 

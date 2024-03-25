@@ -154,6 +154,9 @@ public class GameStateGameOverTest extends ParameterisedModelTestBase {
 		//bus/secret to 41/13/67/86 or even a double move
 
 		state = state.advance(taxi(GREEN, 41, 40));
+
+
+		//state = state.advance(bus(MRX, 52, 41));
 		// no detectives can move at this point, allowing MrX to escape
 		assertGameIsNotOver(state);
 	}

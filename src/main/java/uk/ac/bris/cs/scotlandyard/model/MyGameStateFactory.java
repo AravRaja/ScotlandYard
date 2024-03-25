@@ -26,7 +26,7 @@ import static uk.ac.bris.cs.scotlandyard.model.Piece.MrX.MRX;
 public final class MyGameStateFactory implements Factory<GameState> {
 	private final class MyGameState implements GameState {
 		private GameSetup setup;
-		private Set<Piece> remaining;
+		private ImmutableSet<Piece> remaining;
 		private ImmutableList<LogEntry> log;
 		private Player mrX;
 		private List<Player> detectives;
@@ -44,7 +44,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 		private MyGameState(
 				final GameSetup setup,
-				final Set<Piece> remaining,
+				final ImmutableSet<Piece> remaining,
 				final ImmutableList<LogEntry> log,
 				final Player mrX,
 				final List<Player> detectives,
@@ -59,8 +59,9 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			this.log = log;
 			this.mrX = mrX;
 			this.detectives = detectives;
-			this.winner = ImmutableSet.of();
 			this.availableMovesOveride = availableMovesOveride;
+			this.winner = getWinner();
+
 
 
 			this.moves = getAvailableMoves();
@@ -96,11 +97,16 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		@Nonnull
 		@Override public ImmutableList<LogEntry> getMrXTravelLog(){ return log; }
 
+		public boolean isMrXTurn(){
+			System.out.println(availableMovesOveride);
+			return (remaining.size() == detectives.size() || availableMovesOveride > 1);
 
+		}
 
 		@Nonnull
 		@Override
 		public ImmutableSet<Piece> getWinner() {
+			this.winner = ImmutableSet.of();
 			if(!winner.isEmpty()) {return winner;}
 			Set<Piece> detectiveWinnersTemp = new HashSet<>();
 			List<Integer> detectiveLocations = new ArrayList<>();
@@ -111,9 +117,10 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 			ImmutableSet<Piece> mrXWinner = ImmutableSet.of(mrX.piece());
 			ImmutableSet<Piece> detectiveWinners = ImmutableSet.copyOf(detectiveWinnersTemp);
-			System.out.println(detectiveLocations);
-			System.out.println(mrX.location());
+			//System.out.println(detectiveLocations);
+			//System.out.println(mrX.location());
 			if (detectiveLocations.contains(mrX.location())){
+
 				this.winner= detectiveWinners;
 				return winner;
 			}
@@ -124,8 +131,9 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			availableMovesOveride = 0;
 
 			if(isMrXTurn()){
-				System.out.println("hii");
-				if (log.size() == setup.moves.size()){
+				System.out.println("getwinner");
+				//System.out.println("hii");
+				if (log.size() == setup.moves.size() ){
 					this.winner= mrXWinner;
 					return winner;
 				}
@@ -137,23 +145,31 @@ public final class MyGameStateFactory implements Factory<GameState> {
 					return winner;
 				}
 				if(detectiveAvailableMoves.isEmpty()){
-					System.out.println("hey");
+					//System.out.println("hey");
 					this.winner = mrXWinner;
 					return winner;}
 			}
 			else{
-				if (mrXAvailableMoves.isEmpty()){
+				System.out.println("detective Turn");
+				System.out.println(getAvailableMoves());
+				if (mrXAvailableMoves.isEmpty() && getAvailableMoves().isEmpty()){
+					System.out.println("lol");
 					this.winner = detectiveWinners;
 					return winner;}
+
+				else if (getAvailableMoves().isEmpty()){
+					System.out.println("u must happen");
+					this.availableMovesOveride = 2;
+					System.out.println(availableMovesOveride);
+				}
+
 				//if (detectiveAvailableMoves.isEmpty()){
 				//	this.winner= mrXWinner;
 				//	return winner;}
 
-
-
 			}
-			System.out.println(winner);
-			System.out.println("hi");
+			//System.out.println(winner);
+			//System.out.println("hi");
 			return winner;
 		}
 
@@ -213,7 +229,9 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		public ImmutableSet<Move> getAvailableMoves() {
 
 			Set<Move> moves = new HashSet<Move>();
-			if (!winner.isEmpty()) {return ImmutableSet.copyOf(moves);}
+			if (!winner.isEmpty()) {
+				System.out.println("somethings ups");
+				return ImmutableSet.copyOf(moves);}
 			if (!isMrXTurn() && availableMovesOveride == 0){
 				for(Player d : detectives){
 					if (!remaining.contains(d.piece())) {
@@ -289,10 +307,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			}
 		}
 
-		public boolean isMrXTurn(){
-            return remaining.size() == detectives.size();
 
-        }
 
 		public List<ImmutableMap<Ticket, Integer>> setTickets(ImmutableMap<Ticket, Integer> oldTickets, List<Ticket> changedTickets){
 			Map<Ticket, Integer> newtP = new HashMap<>(oldTickets);
@@ -382,9 +397,13 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 		@Override public GameState advance(Move move) {
 			if (remaining.contains(move.commencedBy())){throw new IllegalArgumentException("Detective has already moved this round");}
-			if (remaining.size() != detectives.size() && move.commencedBy().isMrX()){throw new IllegalArgumentException("Not all detectives have moved yet");}
+			System.out.println(isMrXTurn());
+			System.out.println(move.commencedBy().isMrX());
+			if (!isMrXTurn() && move.commencedBy().isMrX()){throw new IllegalArgumentException("Not all detectives have moved yet");}
 			Piece CurrentPiece = move.commencedBy();
+
 			this.moves = getAvailableMoves();
+
 			if(!moves.contains(move)) throw new IllegalArgumentException("Illegal move: "+move);
 			Set<Piece> newRemainingTemp = new HashSet<>(Set.of());
 			if (remaining.size() != detectives.size()){
@@ -392,7 +411,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				newRemainingTemp.add(CurrentPiece);
 			}
 
-			Set<Piece> newRemaining = Set.copyOf(newRemainingTemp);
+			ImmutableSet<Piece> newRemaining = ImmutableSet.copyOf(newRemainingTemp);
 
 
 
@@ -473,7 +492,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		for(Player d: detectives){
 			remainingFull.add(d.piece());
 		}
-		return new MyGameState(setup, Set.copyOf(remainingFull), ImmutableList.of(), mrX, detectives, ImmutableSet.of(), 0, 0);
+		return new MyGameState(setup, ImmutableSet.copyOf(remainingFull), ImmutableList.of(), mrX, detectives, ImmutableSet.of(), 0, 0);
 
 	}
 

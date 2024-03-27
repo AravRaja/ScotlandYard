@@ -31,12 +31,15 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		private Player mrX;
 		private List<Player> detectives;
 
-		private Integer moveNumber;
+
 		private ImmutableSet<Move> moves;
 		private ImmutableSet<Piece> winner;
 
-		
-		private Piece CurrentPiece;
+		private Integer moveNumber;
+		private Integer availableMovesOveride;
+
+
+
 
 
 		private MyGameState(
@@ -46,8 +49,8 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				final Player mrX,
 				final List<Player> detectives,
 				final ImmutableSet<Piece> winner,
-				final Piece CurrentPiece,
-				final Integer moveNumber
+				final Integer moveNumber,
+				final Integer availableMovesOveride
 		)
 
 		{
@@ -56,12 +59,15 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			this.log = log;
 			this.mrX = mrX;
 			this.detectives = detectives;
-			this.winner = ImmutableSet.of();
-			this.CurrentPiece = CurrentPiece;
+			this.availableMovesOveride = availableMovesOveride;
+			this.winner = getWinner();
+
+
+
 			this.moves = getAvailableMoves();
 
 			this.moveNumber = moveNumber;
-
+			//setRemaining();
 			if(setup.moves.isEmpty()) throw new IllegalArgumentException("Moves is empty!");
 			if(!mrX.isMrX()) throw new IllegalArgumentException("mrX is not the MRX piece");
 			for (Player p : detectives) {
@@ -91,30 +97,62 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		@Nonnull
 		@Override public ImmutableList<LogEntry> getMrXTravelLog(){ return log; }
 
+		public boolean isMrXTurn(){
+			return (remaining.size() == detectives.size() || availableMovesOveride > 1);
+
+		}
+
 		@Nonnull
 		@Override
 		public ImmutableSet<Piece> getWinner() {
+			this.winner = ImmutableSet.of();
+			if(!winner.isEmpty()) {return winner;}
 			Set<Piece> detectiveWinnersTemp = new HashSet<>();
 			List<Integer> detectiveLocations = new ArrayList<>();
 			for(Player d: detectives){
 				detectiveWinnersTemp.add(d.piece());
 				detectiveLocations.add(d.location());
 			}
+
 			ImmutableSet<Piece> mrXWinner = ImmutableSet.of(mrX.piece());
 			ImmutableSet<Piece> detectiveWinners = ImmutableSet.copyOf(detectiveWinnersTemp);
-			System.out.println(detectiveLocations);
-			System.out.println(mrX.location());
-			if (detectiveLocations.contains(mrX.location())){this.winner= detectiveWinners;}
+			if (detectiveLocations.contains(mrX.location())){
+
+				this.winner= detectiveWinners;
+				return winner;
+			}
+			availableMovesOveride = 1;
+			ImmutableSet<Move> detectiveAvailableMoves  = getAvailableMoves();
+			availableMovesOveride = 2;
+			ImmutableSet<Move> mrXAvailableMoves  = getAvailableMoves();
+			availableMovesOveride = 0;
 
 			if(isMrXTurn()){
-				if (log.size() == setup.moves.size()){this.winner= mrXWinner;}
-				if (moves.isEmpty()){ this.winner = detectiveWinners;}
+				if (log.size() == setup.moves.size() ){
+					this.winner= mrXWinner;
+					return winner;
+				}
+
+
+				if (mrXAvailableMoves.isEmpty()){
+					this.winner = detectiveWinners;
+					return winner;
+				}
+				if(detectiveAvailableMoves.isEmpty()){
+					this.winner = mrXWinner;
+					return winner;}
 			}
 			else{
+				if (mrXAvailableMoves.isEmpty() && getAvailableMoves().isEmpty()){
+					this.winner = detectiveWinners;
+					return winner;}
 
-				if (moves.isEmpty()){ this.winner= mrXWinner;}
+				else if (getAvailableMoves().isEmpty()){
+					this.availableMovesOveride = 2;
+				}
+
+
 			}
-			System.out.println(winner);
 			return winner;
 		}
 
@@ -123,8 +161,6 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			// TODO create an empty collection of some sort, say, HashSet, to store all the SingleMove we generate
 			List<Integer> detectivePositions = new ArrayList<Integer>();
 			for (Player d : detectives) {
-				//System.out.println(d.location());
-				//System.out.println(d.piece());
 				detectivePositions.add(d.location());
 			}
 			Set<SingleMove> moves = new HashSet<SingleMove>();
@@ -174,13 +210,21 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		public ImmutableSet<Move> getAvailableMoves() {
 
 			Set<Move> moves = new HashSet<Move>();
-			if (!winner.isEmpty()) {return ImmutableSet.copyOf(moves);}
-			if (!isMrXTurn()){
+			if (!winner.isEmpty()) {
+				return ImmutableSet.copyOf(moves);}
+			if (!isMrXTurn() && availableMovesOveride == 0){
 				for(Player d : detectives){
 					if (!remaining.contains(d.piece())) {
 						moves.addAll(makeSingleMoves(getSetup(), detectives, d, d.location()));
 					}
 				}
+			}
+			else if ( availableMovesOveride == 1){
+
+				for(Player d : detectives){
+					moves.addAll(makeSingleMoves(getSetup(), detectives, d, d.location()));
+				}
+
 			}
 			else{
 				Set<SingleMove> mrXSingleMoves = makeSingleMoves(getSetup(), detectives, mrX, mrX.location());
@@ -243,10 +287,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			}
 		}
 
-		public boolean isMrXTurn(){
-            return remaining.size() == detectives.size();
 
-        }
 
 		public List<ImmutableMap<Ticket, Integer>> setTickets(ImmutableMap<Ticket, Integer> oldTickets, List<Ticket> changedTickets){
 			Map<Ticket, Integer> newtP = new HashMap<>(oldTickets);
@@ -255,14 +296,14 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 				newtP.replace(t, newtP.get(t), newtP.get(t) - 1);
 
-				if (CurrentPiece.isDetective()) {
+				if (!isMrXTurn()) {
 					newtX.replace(t, newtX.get(t), newtX.get(t) + 1);
 				}
 			}
 			return List.of(ImmutableMap.copyOf(newtP),ImmutableMap.copyOf(newtX));
 		}
 
-		public Player setCurrentPlayer(){
+		public Player setCurrentPlayer(Piece CurrentPiece){
 			Player CurrentPlayer = null;
 			if (CurrentPiece.isMrX()){ CurrentPlayer = mrX;}
 			else {
@@ -336,15 +377,18 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 		@Override public GameState advance(Move move) {
 			if (remaining.contains(move.commencedBy())){throw new IllegalArgumentException("Detective has already moved this round");}
-			if (remaining.size() != detectives.size() && move.commencedBy().isMrX()){throw new IllegalArgumentException("Not all detectives have moved yet");}
-			this.CurrentPiece = move.commencedBy();
+			if (!isMrXTurn() && move.commencedBy().isMrX()){throw new IllegalArgumentException("Not all detectives have moved yet");}
+			Piece CurrentPiece = move.commencedBy();
+
 			this.moves = getAvailableMoves();
+
 			if(!moves.contains(move)) throw new IllegalArgumentException("Illegal move: "+move);
 			Set<Piece> newRemainingTemp = new HashSet<>(Set.of());
 			if (remaining.size() != detectives.size()){
 				newRemainingTemp.addAll(remaining);
 				newRemainingTemp.add(CurrentPiece);
 			}
+
 			ImmutableSet<Piece> newRemaining = ImmutableSet.copyOf(newRemainingTemp);
 
 
@@ -353,7 +397,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 			//check validity of move ^
 
-			Player CurrentPlayer = setCurrentPlayer();
+			Player CurrentPlayer = setCurrentPlayer(CurrentPiece);
 
 			// gives us current player from piece ^
 
@@ -391,7 +435,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				}
 
 
-            return new MyGameState(setup,newRemaining, newLog, newMrX, newDetectives, winner, CurrentPiece, moveNumber);
+            return new MyGameState(setup,newRemaining, newLog, newMrX, newDetectives, winner, moveNumber, 0);
 
 
 			//number of rounds og the game has been left
@@ -426,7 +470,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		for(Player d: detectives){
 			remainingFull.add(d.piece());
 		}
-		return new MyGameState(setup, ImmutableSet.copyOf(remainingFull), ImmutableList.of(), mrX, detectives, ImmutableSet.of(), mrX.piece(), 0);
+		return new MyGameState(setup, ImmutableSet.copyOf(remainingFull), ImmutableList.of(), mrX, detectives, ImmutableSet.of(), 0, 0);
 
 	}
 

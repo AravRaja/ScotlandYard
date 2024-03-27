@@ -39,8 +39,8 @@ public final class MyModelFactory implements Factory<Model> {
 
 		@Override
 		public void unregisterObserver(@Nonnull Observer observer) {
-			if(observer == null){throw new NullPointerException("An observer cannot be null");};
-			if (!observers.contains(observer)) { throw new IllegalArgumentException("cannot unregister observer that is not registered"); }
+			if(observer == null){throw new NullPointerException("An observer cannot be null");}
+            if (!observers.contains(observer)) { throw new IllegalArgumentException("cannot unregister observer that is not registered"); }
 			this.observers.remove(observer);
 		}
 

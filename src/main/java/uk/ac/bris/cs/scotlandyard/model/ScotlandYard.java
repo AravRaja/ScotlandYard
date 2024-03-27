@@ -251,6 +251,9 @@ public final class ScotlandYard {
 	 * A generic factory used to create a game state or model
 	 */
 	public interface Factory<T> {
+
+
+		enum Mode{STANDARD, ALLDETECTIVES, MRX}
 		/**
 		 * Create an instance of the parameterised type given the parameters required for
 		 * ScotlandYard game
@@ -260,6 +263,7 @@ public final class ScotlandYard {
 		 * @param detectives detective players
 		 * @return an instance of the parameterised type
 		 */
+
 		@Nonnull T build(GameSetup setup, Player mrX, ImmutableList<Player> detectives);
 		/**
 		 * Delegates to {@link #build(GameSetup, Player, ImmutableList)}, mainly used for tests

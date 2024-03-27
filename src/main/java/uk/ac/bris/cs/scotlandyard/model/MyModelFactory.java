@@ -28,15 +28,18 @@ public final class MyModelFactory implements Factory<Model> {
 		public Board getCurrentBoard() {
 			return this.state;
 		}
-		@Nonnull
+
 		@Override
 		public void registerObserver(@Nonnull Observer observer) {
+
+			if(observer == null){throw new NullPointerException("An observer cannot be null");}
 			if (observers.contains(observer)) { throw new IllegalArgumentException("cannot register same observer more than once"); }
 			this.observers.add(observer);
 		}
-		@Nonnull
+
 		@Override
 		public void unregisterObserver(@Nonnull Observer observer) {
+			if(observer == null){throw new NullPointerException("An observer cannot be null");};
 			if (!observers.contains(observer)) { throw new IllegalArgumentException("cannot unregister observer that is not registered"); }
 			this.observers.remove(observer);
 		}
@@ -51,9 +54,15 @@ public final class MyModelFactory implements Factory<Model> {
 		public void chooseMove(@Nonnull Move move) {
 			this.state = state.advance(move);
 			if (state.getWinner().isEmpty()) {
+				for (Observer obs:observers){
+					obs.onModelChanged(getCurrentBoard(), Observer.Event.MOVE_MADE);
+				}
 				//inform observers of new state and EVENT.MOVE_MADE
 			}
 			else {
+				for (Observer obs:observers){
+					obs.onModelChanged(getCurrentBoard(), Observer.Event.GAME_OVER);
+				}
 				//inform observers of new state and EVENT.GAME_OVER
 			}
 

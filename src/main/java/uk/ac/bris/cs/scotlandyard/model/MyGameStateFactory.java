@@ -101,7 +101,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		public boolean isMrXTurn(){
 			return (remaining.size() == detectives.size() || turn == Mode.MRX);
 			//if all the detectives are in remaining then none of them can move so has to be mrX turn
-			//or if the Override mode is  on mrX's turn
+			//or if the turn mode is on mrX's turn
 
 		}
 

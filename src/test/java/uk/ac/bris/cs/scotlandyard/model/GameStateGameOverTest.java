@@ -192,7 +192,6 @@ public class GameStateGameOverTest extends ParameterisedModelTestBase {
 		state = state.advance(taxi(MRX, 86, 104));
 		state = state.advance(taxi(BLUE, 108, 105)); // blue uses his last move
 		assertGameIsOver(state);
-		System.out.println("yo");
 		assertThat(state.getWinner()).containsExactlyInAnyOrder(MRX);
 	}
 

@@ -35,6 +35,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 
 		private Mode turn;
+		//added a turn variable to track which turn modes the game is in for getWinner and advance purposes
 
 
 
@@ -187,17 +188,20 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			Set<SingleMove> moves = new HashSet<>();
 
 			for(int destination : setup.graph.adjacentNodes(source)) {
-
+				//loops through adjacent nodes to the chosen detective source
 				if (!detectivePositions.contains(destination)){
-
+					//checks that none of the other detectives are on any of the adjacent nodes
 
 					for(Transport t : setup.graph.edgeValueOrDefault(source, destination, ImmutableSet.of()) ) {
 						if (player.has(t.requiredTicket())) {
 							moves.add(new SingleMove(player.piece(),source,t.requiredTicket(),destination));
+							//looks at the transport needed to get to these adjacent nodes and checks player tickets
+							//if the has the required ticket then add a possible single move to move
 						}
 					}
 					if(player.has(Ticket.SECRET)) {
 						moves.add(new SingleMove(player.piece(),source,Ticket.SECRET,destination));
+						//if a player has a secret ticket add this single move as well as secret tickets can move via all transport
 					}
 
 				}
@@ -301,7 +305,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 
 
-		public List<ImmutableMap<Ticket, Integer>> setTickets(ImmutableMap<Ticket, Integer> oldTickets, List<Ticket> usedTickets){
+		public List<ImmutableMap<Ticket, Integer>> getTickets(ImmutableMap<Ticket, Integer> oldTickets, List<Ticket> usedTickets){
 			//function takes a players old tickets and the tickets that were used ands returns a new map of the players changed tickets
 			// as well as mrX's changed tickets if it's a detectives turn
 
@@ -430,7 +434,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			//makes a current player and piece for readability and simplicity
 
 			TicketUpdate tc = new TicketUpdate();
-			List<ImmutableMap<Ticket, Integer>> newTickets = setTickets(currentPlayer.tickets(), move.accept(tc));
+			List<ImmutableMap<Ticket, Integer>> newTickets = getTickets(currentPlayer.tickets(), move.accept(tc));
             ImmutableMap<Ticket, Integer> playerTickets = newTickets.get(0);
 			ImmutableMap<Ticket, Integer> xTickets = newTickets.get(1);
 			//updates the advance players tickets and new mrX tickets for the new game state ^

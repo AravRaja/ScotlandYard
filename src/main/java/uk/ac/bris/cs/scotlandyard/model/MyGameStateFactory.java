@@ -53,11 +53,16 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		{
 			this.setup = setup;
 			this.remaining = remaining;
+
 			this.log = log;
 			this.mrX = mrX;
 			this.detectives = detectives;
-            this.winner = getWinner();
-			this.turn = getTurn();
+
+
+
+			this.turn = Mode.STANDARD;
+			this.winner = getWinner();
+
 			this.moves = getAvailableMoves();
 
 
@@ -92,7 +97,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			}
 			dp.add(mrX.piece());
 
-            return ImmutableSet.copyOf(dp);
+			return ImmutableSet.copyOf(dp);
 		}
 
 		@Nonnull
@@ -106,7 +111,8 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		}
 
 		public Mode getTurn(){
-			if((!isMrXTurn()) && getAvailableMoves().isEmpty() && winner.isEmpty()){
+
+			if(getAvailableMoves().isEmpty() && winner.isEmpty()){
 				return Mode.MRX;
 			}
 			else{
@@ -174,6 +180,11 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				//if it's the detectives turn, and they have no moves and mrX has no moves then they win
 			}
 			this.turn = getTurn();
+			if(isMrXTurn()){
+				if (log.size() == setup.moves.size() ){
+					this.winner= mrXWinner;
+					return winner;
+				}}
 			return winner;
 		}
 
@@ -268,9 +279,9 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 				if (mrX.has(Ticket.DOUBLE) && (getSetup().moves.size() > 1)){
 					moves.addAll(makeDoubleMoves(getSetup(), detectives, mrX, mrXSingleMoves));
-					}
-				// adds mrX's double moves if he has a double move ticket
 				}
+				// adds mrX's double moves if he has a double move ticket
+			}
 			return ImmutableSet.copyOf(moves);
 		}
 
@@ -280,19 +291,19 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		@Override public Optional<Integer> getDetectiveLocation(Detective detective){
 			//functions loops through and find associated detective and returns its location
 			for (Player d : detectives) {
-                if (detective == d.piece()) {
+				if (detective == d.piece()) {
 					return Optional.of(d.location());
 
-                }
+				}
 			}
 			return Optional.empty();
-        }
+		}
 
 		@Nonnull
 		@Override
 		public Optional<TicketBoard> getPlayerTickets(Piece piece) {
 			//function returns a ticketBoard of the piece with the method getCount
-            List<Player> players = new ArrayList<>(detectives);
+			List<Player> players = new ArrayList<>(detectives);
 			players.add(mrX);
 
 			for (Player p : players) {
@@ -435,7 +446,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 			TicketUpdate tc = new TicketUpdate();
 			List<ImmutableMap<Ticket, Integer>> newTickets = getTickets(currentPlayer.tickets(), move.accept(tc));
-            ImmutableMap<Ticket, Integer> playerTickets = newTickets.get(0);
+			ImmutableMap<Ticket, Integer> playerTickets = newTickets.get(0);
 			ImmutableMap<Ticket, Integer> xTickets = newTickets.get(1);
 			//updates the advance players tickets and new mrX tickets for the new game state ^
 
@@ -481,7 +492,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			//otherwise only updates newMrX and keep detectives the same
 
 
-            return new MyGameState(setup, newRemaining, newLog, newMrX, newDetectives, winner);
+			return new MyGameState(setup, newRemaining, newLog, newMrX, newDetectives, winner);
 		}
 	}
 	@Nonnull @Override public GameState build(

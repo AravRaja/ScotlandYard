@@ -1,6 +1,6 @@
 # Scotland Yard Game - University of Bristol Coursework
 
-This repository contains my implementation of the *Scotland Yard* board game in Java, developed as part of my University of Bristol coursework. The primary structure of the game was laid out by UoB, and my main task was to develop the `GameStateFactory` to manage and update game states efficiently. The project emphasizes the use of  design patterns, such as the *Observer* and *Visitor* patterns, to handle real-time game interactions and state updates.
+This repository contains our implementation of the *Scotland Yard* board game in Java, developed as part of our University of Bristol coursework. The primary structure of the game was laid out by UoB, and our main task was to develop the `GameStateFactory` to manage and update game states efficiently. The project emphasizes the use of  design patterns, such as the *Observer* and *Visitor* patterns, to handle real-time game interactions and state updates.
 
 ## Features
 - **GameStateFactory**: Manages the state of the game, handling player moves and transitions as the game progresses.

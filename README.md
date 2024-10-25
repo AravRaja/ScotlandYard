@@ -8,15 +8,7 @@ This repository contains our implementation of the *Scotland Yard* board game in
 - **Visitor Design Pattern**: Supports different actions for each player by enabling specific logic within `GameStateFactory`, which applies the appropriate updates based on the context.
 - **Object-Oriented Design**: Uses Java’s OOP principles to structure and modularize code for reusability.
 
-## Installation
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/AravRaja/ScotlandYardFinal.git
-   cd ScotlandYardFinal```markdown
-2. **Compile and run the game (requires Java 8 or above):**
-   ```bash
-   javac -d bin src/*.java
-   java -cp bin Main```markdown
+
 ## Gameplay Instructions
 1. **Choose Your Role**: Play as either a detective or *Mr. X*.
 2. **Game Objective**:
